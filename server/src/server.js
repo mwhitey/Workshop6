@@ -29,14 +29,15 @@ return feedItem;
 /**
 * Get the feed data for a particular user.
 */
-var xhr = new XMLHttpRequest();
-xhr.open('GET', '/user/4/feed');
-xhr.setRequestHeader('Authorization', 'Bearer eyJpZCI6NH0=');
-xhr.addEventListener('load', function() {
-// Call the callback with the data.
-cb(JSON.parse(xhr.responseText));
-});
-xhr.send();
+function getFeedData(user) {
+var userData = readDocument('users', user);
+var feedData = readDocument('feeds', userData.feed);
+// While map takes a callback, it is synchronous,
+// not asynchronous. It calls the callback immediately.
+feedData.contents = feedData.contents.map(getFeedItemSync);
+// Return FeedData with resolved references.
+return feedData;
+}
 
 var express = require('express');
 // Creates an Express server.
