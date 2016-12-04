@@ -7,7 +7,7 @@ var reverseString = reverseMod.reverseString;
 var database = require('./database')
 var readDocument = database.readDocument;
 var StatusUpdateSchema = require('./schemas/statusupdate.json');
-
+var CommentSchema = require('./schemas/comment.json');
 var validate = require('express-jsonschema').validate;
 var writeDocument = database.writeDocument;
 var addDocument = database.addDocument;
@@ -57,6 +57,128 @@ writeDocument('feeds', feedData);
 // Return the newly-posted object.
 return newStatusUpdate;
 }
+
+
+// function postComment(feedItemId, author, contents) {
+// // If we were implementing this for real on an actual server, we would check
+// // that the user ID is correct & matches the authenticated user. But since
+// // we're mocking it, we can be less strict.
+// // Get the current UNIX time.
+// var time = new Date().getTime();
+// // The new status update. The database will assign the ID for us.
+// var newComment = {
+// "author": author,
+// "postDate": time,
+// "contents": contents,
+// "likeCounter": []
+// }
+// newComment = addDocument('comments', newComment);
+// // Add the status update reference to the front of the current user's feed.
+//
+// var feedData = readDocument('feedItems', feedItemId);
+// // var commentData = readDocument('comments', feedData);
+// // commentData.comments.unshift(newComment._id);
+// // Update the feed object.
+// // writeDocument('comments', commentData);
+// // Add the status update to the database.
+// // Returns the status update w/ an ID assigned.
+// // newComment = addDocument('comments', newComment);
+// // var feedItem = readDocument('feedItems', feedItemId);
+// // // Add the status update reference to the front of the current user's feed.
+// //
+// //
+// // // feedData.contents.unshift(newComment._id);
+// // // Update the feed object.
+// //   writeDocument('feedItems', feedItem);
+// // Return the newly-posted object.
+//
+//
+// // getUserData(userID).favoriteSpots;
+// feedData.push(
+// newComment
+// );
+// writeDocument("feedItems", feedData);
+// // Return a resolved version of the feed item so React can
+// // render it.
+// // emulateServerReturn(spotID, cb);
+//
+//
+// return newComment;
+// }
+//
+//
+//
+//
+// // `POST /feeditem/feedItem:id/ { userId: user,  contents: contents }`
+// app.post('/feeditem/:feedItemId/commentthread',
+// validate({ body: CommentSchema }), function(req, res) {
+// // If this function runs, `req.body` passed JSON validation!
+// var body = req.body;
+// var fromUser = getUserIdFromToken(req.get('Authorization'));
+// // Check if requester is authorized to post this status update.
+// // (The requester must be the author of the update.)
+// if (fromUser === body.author) {
+// var newComment = postComment(req.params.feedItemId, body.author, body.contents);
+// // When POST creates a new resource, we should tell the client about it
+// // in the 'Location' header and use status code 201.
+// res.status(201);
+// res.set('Location', '/feeditem/' + req.params.feedItemId+ "/commentthread");
+// // Send the update!
+// res.send(newComment);
+// } else {
+// // 401: Unauthorized.
+// res.status(401).end();
+// }
+// });
+function postComment(feedid, author, contents) {
+// If we were implementing this for real on an actual server, we would check
+// that the user ID is correct & matches the authenticated user. But since
+// we're mocking it, we can be less strict.
+// Get the current UNIX time.
+var time = new Date().getTime();
+// The new status update. The database will assign the ID for us.
+var newComment = {
+"feedItemId": feedid,
+"contents": contents,
+"author": author,
+"postDate": time,
+"likeCounter": []
+};
+// Add the status update to the database.
+// Returns the status update w/ an ID assigned.
+
+// Add the status update reference to the front of the current user's feed.
+var feedData = readDocument("feedItems", feedid)
+// Update the feed object.
+feedData.comments.push(newComment);
+writeDocument('feedItems', feedData);
+// Return the newly-posted object.
+return newComment;
+}
+// Like a feed item.
+app.post('/commentthread', validate({ body: CommentSchema }), function(req, res) {
+var fromUser = getUserIdFromToken(req.get('Authorization'));
+// Convert params from string to number.
+var body = req.body;
+// var feedItemId = parseInt(req.params.feeditemid, 10)
+var userId = body.author;
+if (fromUser ===  userId) {
+// var feedItem = readDocument('feedItems', feedItemId);
+res.status(201);
+var newComment = postComment(body.FeedItemId, userId, body.contents);
+
+// Return a resolved version of the likeCounter
+res.set('Location', '/commentthread/' + newComment._id);
+// Send the update!
+res.send(newComment);
+} else {
+// 401: Unauthorized.
+res.status(401).end();
+}
+});
+
+
+
 // `POST /feeditem { userId: user, location: location, contents: contents }`
 app.post('/feeditem',
 validate({ body: StatusUpdateSchema }), function(req, res) {

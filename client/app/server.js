@@ -59,21 +59,33 @@ function getFeedItemSync(feedItemId) {
  });
  }
 
+
+ export function postComment(feedItemId, author, contents, cb) {
+ sendXHR('POST',  '/commentthread', {
+ feedItemId: feedItemId,
+ author: author,
+ contents: contents
+ }, (xhr) => {
+ // Return the new status update.
+ cb(JSON.parse(xhr.responseText));
+ });
+ }
+
 /**
  * Adds a new comment to the database on the given feed item.
  */
-export function postComment(feedItemId, author, contents, cb) {
-  var feedItem = readDocument('feedItems', feedItemId);
-  feedItem.comments.push({
-    "author": author,
-    "contents": contents,
-    "postDate": new Date().getTime(),
-    "likeCounter": []
-  });
-  writeDocument('feedItems', feedItem);
-  // Return a resolved version of the feed item.
-  emulateServerReturn(getFeedItemSync(feedItemId), cb);
-}
+// export function postComment(feedItemId, author, contents, cb) {
+//   var feedItem = readDocument('feedItems', feedItemId);
+//   feedItem.comments.push({
+//     "author": author,
+//     "contents": contents,
+//     "postDate": new Date().getTime(),
+//     "likeCounter": []
+//   });
+//   writeDocument('feedItems', feedItem);
+//   // Return a resolved version of the feed item.
+//   emulateServerReturn(getFeedItemSync(feedItemId), cb);
+// }
 
 /**
 * Updates a feed item's likeCounter by adding the user to the likeCounter.
